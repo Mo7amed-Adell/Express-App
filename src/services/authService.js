@@ -5,7 +5,10 @@ import jwt from "jsonwebtoken";
 const prisma = new PrismaClient();
 
 export const register = async({name, email, password}) => {
-  const hashed = bcrypt.hash(password, 10);
+    if (!name || !email ) {
+    throw new Error("Missing required fields");
+    }
+  const hashed = await bcrypt.hash(password, 10);
   try {
    return prisma.user.create({
     data: {name, email, password: hashed}
@@ -20,7 +23,7 @@ export const login = async({email, password}) => {
    where: {email}
   });
   if(!user) throw new Error("Invalid credentials");
-  const valid = bcrypt.compare(password, user.password);
+  const valid = await bcrypt.compare(password, user.password);
   if(!valid) throw new Error("Invalid credentials");
 
   const token = jwt.sign(
